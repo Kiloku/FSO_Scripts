@@ -1,0 +1,169 @@
+#Lua SEXPs
+
+$Operator: minimap-add-object
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 3
+$Maximum Arguments: 8
+$Return Type: Nothing
+$Description: Adds a ship to the minimap
+$Parameter:
+	+Description: Ship to monitor
+	+Type: Ship
+$Parameter:
+	+Description: Scale
+	+Type: Number
+$Parameter:
+	+Description: Shape (1: Arrow, 2: Circle, 3: Square)
+	+Type: Number
+$Parameter: 
+	+Description: ColorR
+	+Type: Number
+$Parameter: 
+	+Description: ColorG
+	+Type: Number
+$Parameter: 
+	+Description: ColorB
+	+Type: Number
+$Parameter: 
+	+Description: Width
+	+Type: Number
+$Parameter: 
+	+Description: Length
+	+Type: Number
+
+
+$Operator: minimap-set-center
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 2
+$Maximum Arguments: 2
+$Return Type: Nothing
+$Description: Sets the center of the area monitored by the minimap
+$Parameter:
+	+Description: X
+	+Type: Number
+$Parameter:
+	+Description: Z
+	+Type: Number
+
+$Operator: minimap-set-area-size
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 2
+$Maximum Arguments: 2
+$Return Type: Nothing
+$Description: Sets the size of the area monitored by the minimap
+$Parameter:
+	+Description: Width
+	+Type: Number
+$Parameter:
+	+Description: Length
+	+Type: Number
+
+$Operator: minimap-set-follow-player
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 1
+$Maximum Arguments: 1
+$Return Type: Nothing
+$Description: Sets the map to follow the player. If this is true, it will ignore the value set in "minimap-set-center"
+$Parameter:
+	+Description: Follow
+	+Type: Boolean
+
+$Operator: minimap-auto-add-fighters
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 1
+$Maximum Arguments: 1
+$Return Type: Nothing
+$Description: Determines if the script will automatically add fighters and bombers. 
+$Parameter:
+	+Description: AutoAdd
+	+Type: Boolean
+
+$Operator: minimap-set-default-shape
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 1
+$Maximum Arguments: 1
+$Return Type: Nothing
+$Description: Defines the default shape for monitored objects
+$Parameter:
+	+Description: 1: Arrow, 2: Dot, 3: Square
+	+Type: Number
+
+$Operator: minimap-set-default-color
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 1
+$Maximum Arguments: 1
+$Return Type: Nothing
+$Description: Defines the default color for monitored objects
+$Parameter:
+	+Description: 1: Custom Color, 2: Team Colors
+	+Type: Number
+
+$Operator: minimap-set-custom-color
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 3
+$Maximum Arguments: 4
+$Return Type: Nothing
+$Description: Sets the default color for entities in the minimap
+$Parameter:
+	+Description: Red
+	+Type: Number
+$Parameter:
+	+Description: Green
+	+Type: Number
+$Parameter:
+	+Description: Blue
+	+Type: Number
+$Parameter:
+	+Description: Alpha
+	+Type: Number
+
+$Operator: minimap-set-screen-dimensions
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 4
+$Maximum Arguments: 4
+$Return Type: Nothing
+$Description: Defines the position and size for the minimap. Use negative X and negative Y to anchor the map to the right side and the bottom side respectively
+$Parameter:
+	+Description: X
+	+Type: Number
+$Parameter:
+	+Description: Y
+	+Type: Number
+$Parameter:
+	+Description: Width
+	+Type: Number
+$Parameter:
+	+Description: Height
+	+Type: Number
+
+$Operator: minimap-set-bg-color
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 3
+$Maximum Arguments: 4
+$Return Type: Nothing
+$Description: Sets the background color for the Minimap
+$Parameter:
+	+Description: Red
+	+Type: Number
+$Parameter:
+	+Description: Green
+	+Type: Number
+$Parameter:
+	+Description: Blue
+	+Type: Number
+$Parameter:
+	+Description: Alpha
+	+Type: Number
+
+	
+#End
