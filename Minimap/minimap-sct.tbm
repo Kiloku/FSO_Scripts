@@ -1,0 +1,59 @@
+#Conditional Hooks
+$Application: FS2_Open
+
+$On Game Init: [	
+	MiniMap = {}
+
+	function MiniMap.Init()
+		self.ScreenRect = {x = 0, y = 0, w = 100, h = 100}
+		self.Center = ba.createVector(0,0,0)
+		self.MonitoringBounds = {w = 1000, l = 1000}
+
+	end
+
+	function MiniMap.Draw()
+		gr.setColor(0, 128, 0, 255)
+		gr.setLineWidth(2)
+		gr.drawRectangle(MiniMap.ScreenRect.x, MiniMap.ScreenRect.y, MiniMap.ScreenRect.w, MiniMap.ScreenRect.h, false) --drawRectangle(number X1, number Y1, number X2, number Y2, [boolean Filled = true])
+		local playerMapCoords = MiniMap.GetMapCoords(hv.Player)
+
+		if playerMapCoords then
+			gr.setColor(255, 255, 255, 255)
+			gr.drawCircle(3, MiniMap.ScreenRect.x + playerMapCoords.x, MiniMap.ScreenRect.y + playerMapCoords.y)
+		end
+
+	end
+
+	function MiniMap.GetMapCoords(object)
+		if object == nil then return false end
+
+		if object.Position = nil then return false end
+
+		if object.Position[x] > MiniMap.Center - MonitoringBounds.w/2 and object.Position[x] < MiniMap.Center + MonitoringBounds.w/2 and object.Position[z] > MiniMap.Center - MonitoringBounds.l/2 and object.Position[z] < MiniMap.Center + MonitoringBounds.l/2 then
+				local relativePosX = (MiniMap.Center - MonitoringBounds.w/2) + object.Position[x]
+				local relativePosZ = (MiniMap.Center - MonitoringBounds.l/2) + object.Position[z]
+
+				local mapCoordsX, mapCoordsY = relativePosX/MiniMap.ScreenRect.w, relativePosZ/MiniMap.ScreenRect.h
+
+				return {x = mapCoordsX, y = mapCoordsY}
+		end
+
+		return false
+
+	end
+]
+
+$State: GS_STATE_GAME_PLAY
+$On Gameplay Start:
+[
+	MiniMap:Init()
+]
+
+$On HUD Draw:
+[
+	if mn.getMissionTime() > 0.1 then
+		MiniMap:Draw()
+	end
+]
+
+#End

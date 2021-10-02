@@ -1,0 +1,106 @@
+
+#Conditional Hooks
+$Application: FS2_Open
+
+$On Game Init: [
+
+	
+	--[[ 
+	desired features:
+		-- scale with distance rather than manually
+		-- align with muzzle rather than fighter's center
+		-- align with weapon convergence
+		-- correctly detect third person mode		
+	]]--
+	
+	ThirdPersonReticle = {}
+	
+	function ThirdPersonReticle:Set()	
+		gr.setColor(128, 255, 128, 255)
+		gr.setLineWidth(2)
+		self:Draw(0.6, 100) 
+		self:Draw(0.4, 200)
+		self:Draw(0.2, 300)
+	end
+
+	function ThirdPersonReticle:GetCenter(distance)
+		local player = hv.Player
+		
+		if player == nil or distance == nil then return end	
+		
+		local player_dir = player.Orientation:getFvec():getNormalized()
+		if player_dir == nil then return end
+
+		local screenX, screenY = (player.Position + (player_dir * distance)):getScreenCoords()
+		return screenX, screenY
+	end
+
+	function ThirdPersonReticle:Draw(size, distance)
+		local player = hv.Player
+		
+		if player == nil then return end
+		
+		local left, top, right, bottom = gr.drawTargetingBrackets(player, false, 1)
+		local X, Y = self:GetCenter(distance)
+		if (left ~= nil and right ~= nil and X ~= nil and Y ~= nil) then
+			local edge = right-left
+			edge = math.min(edge, gr.getScreenWidth()/20)
+			local scaledEdge = edge*size
+			if (scaledEdge < 10) then
+				gr.drawRectangle(X-(scaledEdge*1.1), Y-(scaledEdge*1.1), X+(scaledEdge*1.1), Y+(scaledEdge*1.1), false)
+			else 
+				-- draw small diagonals
+				gr.drawLine(X-(scaledEdge*0.95), Y-(scaledEdge*0.95), X-(scaledEdge*0.8), Y-(scaledEdge*0.8))
+				gr.drawLine(X+(scaledEdge*0.95), Y-(scaledEdge*0.95), X+(scaledEdge*0.8), Y-(scaledEdge*0.8))
+				gr.drawLine(X+(scaledEdge*0.95), Y+(scaledEdge*0.95), X+(scaledEdge*0.8), Y+(scaledEdge*0.8))
+				gr.drawLine(X-(scaledEdge*0.95), Y+(scaledEdge*0.95), X-(scaledEdge*0.8), Y+(scaledEdge*0.8))
+				-- draw left
+				-- dashes
+				gr.drawLine(X-(scaledEdge*1.1), Y-(scaledEdge*0.95), X-(scaledEdge), Y-(scaledEdge*0.95))
+				gr.drawLine(X-(scaledEdge*1.1), Y+(scaledEdge*0.95), X-(scaledEdge), Y+(scaledEdge*0.95))
+				-- edge
+				gr.drawLine(X-(scaledEdge*1.1), Y-(scaledEdge*0.95), X-(scaledEdge*1.1), Y+(scaledEdge*0.95))
+				
+				-- draw right
+				-- dashes
+				gr.drawLine(X+(scaledEdge), Y-(scaledEdge*0.95), X+(scaledEdge*1.1), Y-(scaledEdge*0.95))
+				gr.drawLine(X+(scaledEdge), Y+(scaledEdge*0.95), X+(scaledEdge*1.1), Y+(scaledEdge*0.95))
+				-- edge
+				gr.drawLine(X+(scaledEdge*1.1), Y-(scaledEdge*0.95), X+(scaledEdge*1.1), Y+(scaledEdge*0.95))
+				
+				-- draw top
+				-- dashes
+				gr.drawLine(X-(scaledEdge*0.95), Y-(scaledEdge*1.1), X-(scaledEdge*0.95), Y-scaledEdge)
+				gr.drawLine(X+(scaledEdge*0.95), Y-(scaledEdge*1.1), X+(scaledEdge*0.95), Y-scaledEdge)
+				-- edge
+				gr.drawLine(X-(scaledEdge*0.95), Y-(scaledEdge*1.1), X+(scaledEdge*0.95), Y-(scaledEdge*1.1))
+
+				-- draw bottom
+				-- dashes
+				gr.drawLine(X-(scaledEdge*0.95), Y+(scaledEdge*1.1), X-(scaledEdge*0.95), Y+scaledEdge)
+				gr.drawLine(X+(scaledEdge*0.95), Y+(scaledEdge*1.1), X+(scaledEdge*0.95), Y+scaledEdge)
+				-- edge
+				gr.drawLine(X-(scaledEdge*0.95), Y+(scaledEdge*1.1), X+(scaledEdge*0.95), Y+(scaledEdge*1.1))
+			end 
+			local circleSize = size
+			if (circleSize < 1) then 
+				circleSize = 1
+			end
+			gr.drawCircle(circleSize, X, Y, false)
+		end
+	end
+]
+
+$State: GS_STATE_GAME_PLAY
+$On Frame: [
+	
+	local player = hv.Player
+	
+	if mn.getMissionTime() > 0.1 and player ~= nil and player:isValid() and not gr.hasViewmode(VM_OTHER_SHIP) and (gr.hasViewmode(VM_INTERNAL) or gr.hasViewmode(VM_CHASE)) and hu.HUDDrawn and not hu.HUDDisabledExceptMessages then
+		ThirdPersonReticle:Set()
+	end
+
+]
+
+
+#End
