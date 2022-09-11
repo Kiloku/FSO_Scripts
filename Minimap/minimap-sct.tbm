@@ -27,7 +27,20 @@ $On Game Init: [
 		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
 			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
 		end
-		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length)
+		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, false)
+	end
+
+	mn.LuaSEXPs["minimap-add-object-low"].Action = function (ship, scale, shape, colorR, colorG, colorB, width, length)
+		local colorObj = nil
+		
+		if scale == 0 then
+			scale = 1
+		end
+		
+		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
+			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
+		end
+		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, true)
 	end
 
 	mn.LuaSEXPs["minimap-set-center"].Action = function (X,Z)
@@ -76,6 +89,7 @@ $On Game Init: [
 		self.ConvertedScreenPos = self:ConvertScreenPosition(MiniMap.ScreenRect.x, MiniMap.ScreenRect.y)
 		self.Shapes = {Arrow = 1, Circle = 2, Rectangle = 3}
 		self.ColorSettings = {Custom = 1, Team = 2}
+		self.LowPriorityEntities = {}
 		self.MonitoredEntities = {}
 		self.FighterList = {}
 		self.MapTexture = gr.createTexture(self.ScreenRect.w, self.ScreenRect.h)
@@ -119,8 +133,20 @@ $On Game Init: [
 		gr.setLineWidth(2)
 
 		gr.drawRectangle(OriginX, OriginY, OriginX + MiniMap.ScreenRect.w, OriginY + MiniMap.ScreenRect.h, true) --drawRectangle(number X1, number Y1, number X2, number Y2, [boolean Filled = true])
+		
+		self:DrawEntities(self.LowPriorityEntities, OriginX, OriginY)
 
-		for k, obj in ipairs(MiniMap.MonitoredEntities) do
+		self:DrawEntities(self.MonitoredEntities, OriginX, OriginY)
+
+		if MiniMap.DebugMode then
+			gr.drawString("MonitoredEntities: " .. #MiniMap.MonitoredEntities, MiniMap.ConvertedScreenPos.x + MiniMap.ScreenRect.w + 10, MiniMap.ConvertedScreenPos.y + MiniMap.ScreenRect.h + 10)
+
+			-- if playerMapCoords then gr.drawString(playerMapCoords.x) end
+		end
+	end
+
+	function MiniMap:DrawEntities(Entities, OriginX, OriginY)
+		for k, obj in ipairs(Entities) do
 			local objCoord = self:GetMapCoords(obj.Entity)
 			if objCoord then
 				gr.setColor(obj.Color.Red, obj.Color.Green, obj.Color.Blue, obj.Color.Alpha)
@@ -134,12 +160,6 @@ $On Game Init: [
 					-- invalid shape
 				end
 			end
-		end
-
-		if MiniMap.DebugMode then
-			gr.drawString("MonitoredEntities: " .. #MiniMap.MonitoredEntities, MiniMap.ConvertedScreenPos.x + MiniMap.ScreenRect.w + 10, MiniMap.ConvertedScreenPos.y + MiniMap.ScreenRect.h + 10)
-
-			-- if playerMapCoords then gr.drawString(playerMapCoords.x) end
 		end
 	end
 
@@ -268,15 +288,19 @@ $On Game Init: [
 		end
 	end
 
-	function MiniMap:MonitorObject(object, scale, shape, color, width, length)
+	function MiniMap:MonitorObject(object, scale, shape, color, width, length, low)
 		local teamColorR, teamColorG, teamColorB = object.Team:getColor()
 		color = color or {Red = teamColorR, Green = teamColorG, Blue = teamColorB, Alpha = 255}
  		scale = scale or 1
  		shape = shape or MiniMap.Shapes.Circle
  		width = width or 0
  		length = length or 0
-
- 		table.insert(self.MonitoredEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length})
+ 		low = low or false
+ 		if low then
+ 			table.insert(self.LowPriorityEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length})
+ 		else
+ 			table.insert(self.MonitoredEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length})
+		end
 	end
 
 	-- function MiniMap:MonitorShipByName(name, scale, arrow, color)

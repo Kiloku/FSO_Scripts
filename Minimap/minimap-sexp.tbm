@@ -32,6 +32,37 @@ $Parameter:
 	+Description: Length
 	+Type: Number
 
+$Operator: minimap-add-object-low
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 3
+$Maximum Arguments: 8
+$Return Type: Nothing
+$Description: Adds a ship to the minimap at low priority
+$Parameter:
+	+Description: Ship to monitor
+	+Type: Ship
+$Parameter:
+	+Description: Scale
+	+Type: Number
+$Parameter:
+	+Description: Shape (1: Arrow, 2: Circle, 3: Square)
+	+Type: Number
+$Parameter: 
+	+Description: ColorR
+	+Type: Number
+$Parameter: 
+	+Description: ColorG
+	+Type: Number
+$Parameter: 
+	+Description: ColorB
+	+Type: Number
+$Parameter: 
+	+Description: Width
+	+Type: Number
+$Parameter: 
+	+Description: Length
+	+Type: Number
 
 $Operator: minimap-set-center
 $Category: Change
