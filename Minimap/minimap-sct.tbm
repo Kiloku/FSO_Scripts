@@ -107,36 +107,29 @@ $On Game Init: [
 
 	function MiniMap:DrawClipped()
 		gr.setClip(MiniMap.ConvertedScreenPos.x, MiniMap.ConvertedScreenPos.y, MiniMap.ScreenRect.w, MiniMap.ScreenRect.h)
-		MiniMap:Draw()
+		MiniMap:Draw(0, 0)
 		gr.resetClip()
 	end
 
-	function MiniMap:Draw()
-
+	function MiniMap:Draw(OriginX, OriginY)
 		gr.setColor(MiniMap.BGColor.Red, MiniMap.BGColor.Green, MiniMap.BGColor.Blue ,MiniMap.BGColor.Alpha)
 		if MiniMap.FollowPlayer and hv.Player:isValid() then
 			MiniMap.Center = hv.Player.Position
 		end
 		gr.setLineWidth(2)
 
-		gr.drawRectangle(MiniMap.ConvertedScreenPos.x, MiniMap.ConvertedScreenPos.y, MiniMap.ConvertedScreenPos.x - MiniMap.ScreenRect.w, MiniMap.ConvertedScreenPos.y + MiniMap.ScreenRect.h, true) --drawRectangle(number X1, number Y1, number X2, number Y2, [boolean Filled = true])
+		gr.drawRectangle(OriginX, OriginY, OriginX + MiniMap.ScreenRect.w, OriginY + MiniMap.ScreenRect.h, true) --drawRectangle(number X1, number Y1, number X2, number Y2, [boolean Filled = true])
 
 		for k, obj in ipairs(MiniMap.MonitoredEntities) do
 			local objCoord = self:GetMapCoords(obj.Entity)
 			if objCoord then
 				gr.setColor(obj.Color.Red, obj.Color.Green, obj.Color.Blue, obj.Color.Alpha)
 				if obj.Shape == self.Shapes.Arrow then
-					self:DrawArrow((MiniMap.ConvertedScreenPos.x + objCoord.x), (MiniMap.ConvertedScreenPos.y + objCoord.y), obj.Entity.Orientation, obj.Scale)
+					self:DrawArrow((OriginX + objCoord.x), (OriginY + objCoord.y), obj.Entity.Orientation, obj.Scale)
 				elseif obj.Shape == self.Shapes.Rectangle then
-
-					gr.drawString("Drawing a Rectangle..", MiniMap.ConvertedScreenPos.x + MiniMap.ScreenRect.w + 10, MiniMap.ConvertedScreenPos.y + MiniMap.ScreenRect.h + 10)
-					self:DrawRectangle(obj)
-
-					gr.setColor(0,0,0)
-					gr.drawCircle(2, (MiniMap.ConvertedScreenPos.x + objCoord.x), (MiniMap.ConvertedScreenPos.y + objCoord.y))
-					gr.setColor(obj.Color.Red, obj.Color.Green, obj.Color.Blue, obj.Color.Alpha)
+					self:DrawRectangle(obj, OriginX, OriginY)
 				elseif obj.Shape == self.Shapes.Circle then
-					gr.drawCircle(2 * obj.Scale, (MiniMap.ConvertedScreenPos.x + objCoord.x), (MiniMap.ConvertedScreenPos.y + objCoord.y))
+					gr.drawCircle(2 * obj.Scale, (OriginX + objCoord.x), (OriginY + objCoord.y))
 				else
 					-- invalid shape
 				end
@@ -159,7 +152,7 @@ $On Game Init: [
 		if y < 0 then
 			resultY = gr.getScreenHeight() + y
 		end
-		return {x = resultX + MiniMap.ScreenRect.w, y = resultY}
+		return {x = resultX, y = resultY}
 	end
 
 	-- Given a game object, this function returns the 2D coordinates for that object in the MiniMap space.
@@ -195,7 +188,7 @@ $On Game Init: [
 				if debugMode then
 					gr.drawString("  relPos:  " .. string.format("%.2f",relativePosX) .. ", " .. string.format("%.2f",relativePosZ), MiniMap.ScreenRect.x + MiniMap.ScreenRect.w + 10, MiniMap.ScreenRect.y + MiniMap.ScreenRect.h + 40)
 				end
-				local mapCoordsX, mapCoordsY = -1 * relativePosX/(MiniMap.MonitoringBounds.w / MiniMap.ScreenRect.w), relativePosZ/(MiniMap.MonitoringBounds.l / MiniMap.ScreenRect.h)
+				local mapCoordsX, mapCoordsY = (-1 * relativePosX/(MiniMap.MonitoringBounds.w / MiniMap.ScreenRect.w)) + MiniMap.ScreenRect.w, relativePosZ/(MiniMap.MonitoringBounds.l / MiniMap.ScreenRect.h)
 				if debugMode then
 					gr.drawString("mapCoords: " .. string.format("%.2f",mapCoordsX) .. ", " .. string.format("%.2f",mapCoordsY))
 				end
@@ -208,7 +201,7 @@ $On Game Init: [
 
 
 	-- Draws an arrow (technically a chevron) on the screen. Position is in screen space.
-	-- Orientation is an FSO Orientation Matrix (which any game object has as object.orientation). Scale defaults to 1. 
+	-- Orientation is an FSO Orientation Matrix (which any game object has as object.Orientation). Scale defaults to 1. 
 	function MiniMap:DrawArrow(positionX, positionY, orientation, scale)
 		scale = scale or 1
 
@@ -223,7 +216,7 @@ $On Game Init: [
         local bLeft = {x = (-4 * dirVector.z) + ( 10 * -dirVector.x), 
                        y = (-4 * -dirVector.x) - ( 10 * dirVector.z)}
 
-        local bRight = {x = (4 * dirVector.z) + (10 * -dirVector.x) , 
+        local bRight = {x = (4 * dirVector.z) + (10 * -dirVector.x), 
                         y = (4 * -dirVector.x) - (10 * dirVector.z)}
 
 
@@ -243,20 +236,18 @@ $On Game Init: [
 		gr.drawLine(positionX + bRight.x * scale	, positionY - bRight.y * scale		, positionX - 5 * dirVector.x * scale, positionY + 5 * dirVector.z* scale)
 	end
 
-	function MiniMap:DrawRectangle(Entity)
+	function MiniMap:DrawRectangle(Entity, OriginX, OriginY)
 		if Entity.Width == 0 or Entity.Length == 0 then
 			Entity.Width = Entity.Scale
 			Entity.Length = Entity.Scale
 		end
-		
-		local centerCoords = self:GetMapCoords(Entity.Entity, 5000)
+		local dirVector = Entity.Entity.Orientation:getFvec():projectOntoPlane(ba.createVector(0,1,0)):getNormalized()
+		local angle = math.atan2(dirVector.z, dirVector.x) + math.rad(90)
+		local centerCoords = self:GetMapCoords(Entity.Entity)
 		if centerCoords then
-			local rectX1 = centerCoords.x - Entity.Width / 2
-			local rectY1 = centerCoords.y - Entity.Length / 2
-			local rectX2 = centerCoords.x + Entity.Width / 2
-			local rectY2 = centerCoords.y + Entity.Length / 2
+			gr.setColor(Entity.Color.Red, Entity.Color.Green, Entity.Color.Blue, Entity.Color.Alpha)
 
-			gr.drawRectangle(MiniMap.ConvertedScreenPos.x + rectX1, MiniMap.ConvertedScreenPos.y + rectY1, MiniMap.ConvertedScreenPos.x + rectX2, MiniMap.ConvertedScreenPos.y + rectY2)
+			gr.drawRectangleCentered(OriginX + centerCoords.x,  OriginY + centerCoords.y, Entity.Width, Entity.Length, true, angle)
 		end
 	end
 
@@ -293,7 +284,6 @@ $On Game Init: [
 	-- end
 
 	function MiniMap:IsObjectMonitored(object)
-
 		for k, obj in ipairs(MiniMap.MonitoredEntities) do
 			if obj.Entity:getSignature() == object:getSignature() then
 				return true
@@ -315,7 +305,7 @@ $On Frame:
 	
 	if mn.getMissionTime() > 0.1 and player:isValid() then
 		MiniMap:CheckMonitoredObjects()
-	    MiniMap.MonitoredEntities.Player = player
+		MiniMap.MonitoredEntities.Player = player
 		if MiniMap.AutoAddFighters then
 			MiniMap:UpdateFighterList()
 		end
@@ -324,7 +314,6 @@ $On Frame:
 
 $On HUD Draw:
 [
-
 	if mn.getMissionTime() > 0.1 then
 		MiniMap:DrawClipped()
 	end
