@@ -4,7 +4,7 @@ $Operator: minimap-add-object
 $Category: Change
 $Subcategory: Minimap
 $Minimum Arguments: 3
-$Maximum Arguments: 8
+$Maximum Arguments: 9
 $Return Type: Nothing
 $Description: Adds a ship to the minimap
 $Parameter:
@@ -31,12 +31,15 @@ $Parameter:
 $Parameter: 
 	+Description: Length
 	+Type: Number
+$Parameter:
+	+Description: Outline
+	+Type: Boolean
 
 $Operator: minimap-add-object-low
 $Category: Change
 $Subcategory: Minimap
 $Minimum Arguments: 3
-$Maximum Arguments: 8
+$Maximum Arguments: 9
 $Return Type: Nothing
 $Description: Adds a ship to the minimap at low priority
 $Parameter:
@@ -63,12 +66,15 @@ $Parameter:
 $Parameter: 
 	+Description: Length
 	+Type: Number
+$Parameter:
+	+Description: Outline
+	+Type: Boolean
 
 $Operator: minimap-add-class
 $Category: Change
 $Subcategory: Minimap
 $Minimum Arguments: 3
-$Maximum Arguments: 8
+$Maximum Arguments: 9
 $Return Type: Nothing
 $Description: Adds all ships of a class to the minimap (Note: If a ship of the same class enters *after* this runs, it will not be considered here)
 $Parameter:
@@ -95,12 +101,15 @@ $Parameter:
 $Parameter: 
 	+Description: Length
 	+Type: Number
+$Parameter:
+	+Description: Outline
+	+Type: Boolean
 
 $Operator: minimap-add-class-low
 $Category: Change
 $Subcategory: Minimap
 $Minimum Arguments: 3
-$Maximum Arguments: 8
+$Maximum Arguments: 9
 $Return Type: Nothing
 $Description: Adds all ships of a class to the minimap at low priority (Note: If a ship of the same class enters *after* this runs, it will not be considered here)
 $Parameter:
@@ -127,6 +136,9 @@ $Parameter:
 $Parameter: 
 	+Description: Length
 	+Type: Number
+$Parameter:
+	+Description: Outline
+	+Type: Boolean
 
 $Operator: minimap-set-center
 $Category: Change

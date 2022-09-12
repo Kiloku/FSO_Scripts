@@ -11,13 +11,11 @@ $On Game Init: [
 	MiniMap = {}
 
 	--[[ TODO:
-		- Add z-sorting
-		- Rectangles: Add off-sets, Add rotation (waiting for Merge)
-		- Possible settings: 
-			- Escort items with a brighter color or a some other way to highlight them (stroke?)
+		- Add true z-sorting
+		- Rectangles: Add off-sets
 	]]--
 
-	mn.LuaSEXPs["minimap-add-object"].Action = function (ship, scale, shape, colorR, colorG, colorB, width, length)
+	mn.LuaSEXPs["minimap-add-object"].Action = function (ship, scale, shape, colorR, colorG, colorB, width, length, outline)
 		local colorObj = nil
 		
 		if scale == 0 then
@@ -27,10 +25,10 @@ $On Game Init: [
 		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
 			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
 		end
-		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, false)
+		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, false, outline)
 	end
 
-	mn.LuaSEXPs["minimap-add-object-low"].Action = function (ship, scale, shape, colorR, colorG, colorB, width, length)
+	mn.LuaSEXPs["minimap-add-object-low"].Action = function (ship, scale, shape, colorR, colorG, colorB, width, length, outline)
 		local colorObj = nil
 		
 		if scale == 0 then
@@ -40,10 +38,10 @@ $On Game Init: [
 		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
 			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
 		end
-		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, true)
+		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, true, outline)
 	end
 
-	mn.LuaSEXPs["minimap-add-class"].Action = function (shipClass, scale, shape, colorR, colorG, colorB, width, length)
+	mn.LuaSEXPs["minimap-add-class"].Action = function (shipClass, scale, shape, colorR, colorG, colorB, width, length, outline)
 		local colorObj = nil
 		
 		if scale == 0 then
@@ -53,10 +51,10 @@ $On Game Init: [
 		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
 			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
 		end
-		MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, false)
+		MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, false, outline)
 	end
 
-	mn.LuaSEXPs["minimap-add-class-low"].Action = function (shipClass, scale, shape, colorR, colorG, colorB, width, length)
+	mn.LuaSEXPs["minimap-add-class-low"].Action = function (shipClass, scale, shape, colorR, colorG, colorB, width, length, outline)
 		local colorObj = nil
 		
 		if scale == 0 then
@@ -67,7 +65,7 @@ $On Game Init: [
 			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
 		end
 
-		MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, true)
+		MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, true, outline)
 	end
 
 	mn.LuaSEXPs["minimap-set-center"].Action = function (X,Z)
@@ -138,16 +136,6 @@ $On Game Init: [
 
 	end
 
-	function MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, low)
-		--local searchClass = tb.ShipClass[className]
-		local shipIter = mn.getShipList()
-		for ship in shipIter do
-		  if ship.Class == shipClass then
-		  	MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, low)
-		  end
-		end
-	end
-
 	function MiniMap:CheckMonitoredObjects()
 		for k, obj in ipairs(MiniMap.MonitoredEntities) do
 			if not obj.Entity:isValid() or obj.Entity:isDying() or obj.Entity:isDepartingDockbay() or obj.Entity:isDepartingWarp() then
@@ -193,6 +181,13 @@ $On Game Init: [
 					self:DrawRectangle(obj, OriginX, OriginY)
 				elseif obj.Shape == self.Shapes.Circle then
 					gr.drawCircle(2 * obj.Scale, (OriginX + objCoord.x), (OriginY + objCoord.y))
+					if (obj.Outline) then
+						local tempR, tempG, tempB, tempA = gr.getColor()
+						gr.setColor(0, 0, 0, 255)
+						gr.setLineWidth(1.2)
+						gr.drawCircle(2 * obj.Scale, (OriginX + objCoord.x), (OriginY + objCoord.y), false)
+						gr.setColor(tempR, tempG, tempB, tempA)
+					end
 				else
 					-- invalid shape
 				end
@@ -303,8 +298,14 @@ $On Game Init: [
 		local centerCoords = self:GetMapCoords(Entity.Entity)
 		if centerCoords then
 			gr.setColor(Entity.Color.Red, Entity.Color.Green, Entity.Color.Blue, Entity.Color.Alpha)
-
 			gr.drawRectangleCentered(OriginX + centerCoords.x,  OriginY + centerCoords.y, Entity.Width, Entity.Length, true, angle)
+			if (Entity.Outline) then
+				local tempR, tempG, tempB, tempA = gr.getColor()
+				gr.setColor(0, 0, 0, 255)
+				gr.setLineWidth(1.2)
+				gr.drawRectangleCentered(OriginX + centerCoords.x,  OriginY + centerCoords.y, Entity.Width, Entity.Length, false, angle)
+				gr.setColor(tempR, tempG, tempB, tempA)
+			end
 		end
 	end
 
@@ -325,7 +326,7 @@ $On Game Init: [
 		end
 	end
 
-	function MiniMap:MonitorObject(object, scale, shape, color, width, length, low)
+	function MiniMap:MonitorObject(object, scale, shape, color, width, length, low, outline)
 		local teamColorR, teamColorG, teamColorB = object.Team:getColor()
 		color = color or {Red = teamColorR, Green = teamColorG, Blue = teamColorB, Alpha = 255}
  		scale = scale or 1
@@ -333,10 +334,22 @@ $On Game Init: [
  		width = width or 0
  		length = length or 0
  		low = low or false
+ 		outline = outline or false
  		if low then
- 			table.insert(self.LowPriorityEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length})
+ 			table.insert(self.LowPriorityEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
  		else
- 			table.insert(self.MonitoredEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length})
+ 			table.insert(self.MonitoredEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
+		end
+	end
+
+
+	function MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, low)
+		--local searchClass = tb.ShipClass[className]
+		local shipIter = mn.getShipList()
+		for ship in shipIter do
+		  if ship.Class == shipClass then
+		  	MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, low)
+		  end
 		end
 	end
 
@@ -375,7 +388,7 @@ $On Frame:
 
 $On HUD Draw:
 [
-	if mn.getMissionTime() > 0.1 then
+	if mn.getMissionTime() > 0.1 and then
 		MiniMap:DrawClipped()
 	end
 ]
