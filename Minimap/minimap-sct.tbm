@@ -43,6 +43,33 @@ $On Game Init: [
 		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, true)
 	end
 
+	mn.LuaSEXPs["minimap-add-class"].Action = function (shipClass, scale, shape, colorR, colorG, colorB, width, length)
+		local colorObj = nil
+		
+		if scale == 0 then
+			scale = 1
+		end
+		
+		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
+			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
+		end
+		MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, false)
+	end
+
+	mn.LuaSEXPs["minimap-add-class-low"].Action = function (shipClass, scale, shape, colorR, colorG, colorB, width, length)
+		local colorObj = nil
+		
+		if scale == 0 then
+			scale = 1
+		end
+		
+		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
+			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
+		end
+
+		MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, true)
+	end
+
 	mn.LuaSEXPs["minimap-set-center"].Action = function (X,Z)
 		MiniMap.Center = ba.createVector(X,0,Z)
 	end
@@ -109,6 +136,16 @@ $On Game Init: [
 		self.DebugMode = false
 		self:MonitorObject(hv.Player, 1, self.Shapes.Arrow, {Red = 255, Green = 255, Blue = 255, Alpha = 255})
 
+	end
+
+	function MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, low)
+		--local searchClass = tb.ShipClass[className]
+		local shipIter = mn.getShipList()
+		for ship in shipIter do
+		  if ship.Class == shipClass then
+		  	MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, low)
+		  end
+		end
 	end
 
 	function MiniMap:CheckMonitoredObjects()
@@ -248,7 +285,7 @@ $On Game Init: [
 		--gr.drawString("bRight: " .. string.format("%.2f",bRight.x) .. ", " .. string.format("%.2f",bRight.y))
 
 
-		gr.setLineWidth(1)
+		gr.setLineWidth(math.max(1, scale))
 		gr.drawLine(positionX + bLeft.x * scale 	, positionY - bLeft.y * scale 		, positionX, positionY)
 		gr.drawLine(positionX + bLeft.x * scale 	, positionY - bLeft.y * scale		, positionX - 5 * dirVector.x * scale, positionY + 5 * dirVector.z* scale)
 		

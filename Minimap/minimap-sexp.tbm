@@ -64,6 +64,70 @@ $Parameter:
 	+Description: Length
 	+Type: Number
 
+$Operator: minimap-add-class
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 3
+$Maximum Arguments: 8
+$Return Type: Nothing
+$Description: Adds all ships of a class to the minimap (Note: If a ship of the same class enters *after* this runs, it will not be considered here)
+$Parameter:
+	+Description: Class to monitor
+	+Type: Shipclass
+$Parameter:
+	+Description: Scale
+	+Type: Number
+$Parameter:
+	+Description: Shape (1: Arrow, 2: Circle, 3: Square)
+	+Type: Number
+$Parameter: 
+	+Description: ColorR
+	+Type: Number
+$Parameter: 
+	+Description: ColorG
+	+Type: Number
+$Parameter: 
+	+Description: ColorB
+	+Type: Number
+$Parameter: 
+	+Description: Width
+	+Type: Number
+$Parameter: 
+	+Description: Length
+	+Type: Number
+
+$Operator: minimap-add-class-low
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 3
+$Maximum Arguments: 8
+$Return Type: Nothing
+$Description: Adds all ships of a class to the minimap at low priority (Note: If a ship of the same class enters *after* this runs, it will not be considered here)
+$Parameter:
+	+Description: Class to monitor
+	+Type: Shipclass
+$Parameter:
+	+Description: Scale
+	+Type: Number
+$Parameter:
+	+Description: Shape (1: Arrow, 2: Circle, 3: Square)
+	+Type: Number
+$Parameter: 
+	+Description: ColorR
+	+Type: Number
+$Parameter: 
+	+Description: ColorG
+	+Type: Number
+$Parameter: 
+	+Description: ColorB
+	+Type: Number
+$Parameter: 
+	+Description: Width
+	+Type: Number
+$Parameter: 
+	+Description: Length
+	+Type: Number
+
 $Operator: minimap-set-center
 $Category: Change
 $Subcategory: Minimap
