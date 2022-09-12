@@ -108,6 +108,13 @@ $On Game Init: [
 		MiniMap.BGColor = {Red = r, Green = g, Blue = b, Alpha = a}
 	end
 
+	mn.LuaSEXPs["minimap-hide"].Action = function ()
+		MiniMap.Active = false
+	end
+
+	mn.LuaSEXPs["minimap-show"].Action = function ()
+		MiniMap.Active = true
+	end
 
 	function MiniMap:Init()
 		self.ScreenRect = {x = 50, y = 50, w = 150, h = 150}
@@ -118,6 +125,7 @@ $On Game Init: [
 		self.MonitoredEntities = {}
 		self.FighterList = {}
 		self.MapTexture = gr.createTexture(self.ScreenRect.w, self.ScreenRect.h)
+		self.Active = true
 
 		--Settings (You may want to change those in FRED)
 		self.FollowPlayer = true
@@ -388,7 +396,7 @@ $On Frame:
 
 $On HUD Draw:
 [
-	if mn.getMissionTime() > 0.1 and then
+	if mn.getMissionTime() > 0.1 and MiniMap.Active then
 		MiniMap:DrawClipped()
 	end
 ]

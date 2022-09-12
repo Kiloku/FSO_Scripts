@@ -272,5 +272,20 @@ $Parameter:
 	+Description: Alpha
 	+Type: Number
 
+$Operator: minimap-hide
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 0
+$Maximum Arguments: 0
+$Return Type: Nothing
+$Description: Hides the Minimap
+
+$Operator: minimap-show
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 0
+$Maximum Arguments: 0
+$Return Type: Nothing
+$Description: Shows the Minimap
 	
 #End
