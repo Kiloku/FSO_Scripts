@@ -25,7 +25,7 @@ $On Game Init: [
 		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
 			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
 		end
-		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, false, outline)
+		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, false, outline, true)
 	end
 
 	mn.LuaSEXPs["minimap-add-object-low"].Action = function (ship, scale, shape, colorR, colorG, colorB, width, length, outline)
@@ -38,7 +38,7 @@ $On Game Init: [
 		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
 			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
 		end
-		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, true, outline)
+		MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, true, outline, true)
 	end
 
 	mn.LuaSEXPs["minimap-add-class"].Action = function (shipClass, scale, shape, colorR, colorG, colorB, width, length, outline)
@@ -142,9 +142,9 @@ $On Game Init: [
 
 		self.DebugMode = false
 		self.CleanupCount = 0
-		self:MonitorObject(hv.Player, 1, self.Shapes.Arrow, {Red = 255, Green = 255, Blue = 255, Alpha = 255})
+		self:MonitorObject(hv.Player, 1, self.Shapes.Arrow, {Red = 255, Green = 255, Blue = 255, Alpha = 255}, true)
 		self:StartCleanups()
-		
+
 		if MiniMap.AutoAddFighters then
 			MiniMap:UpdateFighterList()
 		end
@@ -340,7 +340,7 @@ $On Game Init: [
 		end
 	end
 
-	function MiniMap:MonitorObject(object, scale, shape, color, width, length, low, outline)
+	function MiniMap:MonitorObject(object, scale, shape, color, width, length, low, outline, replace)
 		local teamColorR, teamColorG, teamColorB = object.Team:getColor()
 		color = color or {Red = teamColorR, Green = teamColorG, Blue = teamColorB, Alpha = 255}
  		scale = scale or 1
@@ -349,6 +349,22 @@ $On Game Init: [
  		length = length or 0
  		low = low or false
  		outline = outline or false
+ 		replace = replace or false
+ 		local existingIndex = -2
+ 		if replace then
+	 		if low then
+		 		existingIndex = MiniMap:GetObjectIndex(object, MiniMap.LowPriorityEntities)
+		 		if existingIndex > -1 then
+		 			table.remove(MiniMap.LowPriorityEntities, existingIndex)
+		 		end
+	 		else 
+		 		existingIndex = MiniMap:GetObjectIndex(object, MiniMap.MonitoredEntities)
+		 		if existingIndex > -1 then
+	 				table.remove(MiniMap.MonitoredEntities, existingIndex)
+	 			end
+	 		end
+ 		end
+
  		if not (MiniMap:IsObjectMonitored(object, true) or (low and MiniMap:IsObjectMonitored(object, false)) ) then
 	 		if low then
 	 			table.insert(self.LowPriorityEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
@@ -360,7 +376,6 @@ $On Game Init: [
 
 
 	function MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, low, outline)
-		--local searchClass = tb.ShipClass[className]
 		if low then 
 			table.insert(self.LowPriorityClasses, 1, {Class = shipClass, Color = colorObj, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
 		else
@@ -388,9 +403,14 @@ $On Game Init: [
 		end
 	end
 
-	-- function MiniMap:MonitorShipByName(name, scale, arrow, color)
-
-	-- end
+	function MiniMap:GetObjectIndex(object, list)
+		for k, obj in ipairs(list) do
+			if obj.Entity:getSignature() == object:getSignature() then
+				return k
+			end
+		end
+		return -1
+	end
 
 	function MiniMap:IsObjectMonitored(object, ignoreLow)
 		ignoreLow = ignoreLow or false
