@@ -121,6 +121,8 @@ $On Game Init: [
 		self.ConvertedScreenPos = self:ConvertScreenPosition(MiniMap.ScreenRect.x, MiniMap.ScreenRect.y)
 		self.Shapes = {Arrow = 1, Circle = 2, Rectangle = 3}
 		self.ColorSettings = {Custom = 1, Team = 2}
+		self.LowPriorityClasses = {}
+		self.MonitoredClasses = {}
 		self.LowPriorityEntities = {}
 		self.MonitoredEntities = {}
 		self.FighterList = {}
@@ -138,13 +140,23 @@ $On Game Init: [
 
 		self.BGColor = {Red = 16, Green = 16, Blue = 127, Alpha = 127}
 
-
 		self.DebugMode = false
+		self.CleanupCount = 0
 		self:MonitorObject(hv.Player, 1, self.Shapes.Arrow, {Red = 255, Green = 255, Blue = 255, Alpha = 255})
+		self:StartCleanups()
+		
+		if MiniMap.AutoAddFighters then
+			MiniMap:UpdateFighterList()
+		end
 
 	end
 
 	function MiniMap:CheckMonitoredObjects()
+		for k, obj in ipairs(MiniMap.LowPriorityEntities) do
+			if not obj.Entity:isValid() or obj.Entity:isDying() or obj.Entity:isDepartingDockbay() or obj.Entity:isDepartingWarp() then
+				table.remove(MiniMap.LowPriorityEntities, k)
+			end
+		end
 		for k, obj in ipairs(MiniMap.MonitoredEntities) do
 			if not obj.Entity:isValid() or obj.Entity:isDying() or obj.Entity:isDepartingDockbay() or obj.Entity:isDepartingWarp() then
 				table.remove(MiniMap.MonitoredEntities, k)
@@ -170,12 +182,6 @@ $On Game Init: [
 		self:DrawEntities(self.LowPriorityEntities, OriginX, OriginY)
 
 		self:DrawEntities(self.MonitoredEntities, OriginX, OriginY)
-
-		if MiniMap.DebugMode then
-			gr.drawString("MonitoredEntities: " .. #MiniMap.MonitoredEntities, MiniMap.ConvertedScreenPos.x + MiniMap.ScreenRect.w + 10, MiniMap.ConvertedScreenPos.y + MiniMap.ScreenRect.h + 10)
-
-			-- if playerMapCoords then gr.drawString(playerMapCoords.x) end
-		end
 	end
 
 	function MiniMap:DrawEntities(Entities, OriginX, OriginY)
@@ -343,20 +349,41 @@ $On Game Init: [
  		length = length or 0
  		low = low or false
  		outline = outline or false
- 		if low then
- 			table.insert(self.LowPriorityEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
- 		else
- 			table.insert(self.MonitoredEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
+ 		if not (MiniMap:IsObjectMonitored(object, true) or (low and MiniMap:IsObjectMonitored(object, false)) ) then
+	 		if low then
+	 			table.insert(self.LowPriorityEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
+	 		else
+	 			table.insert(self.MonitoredEntities, 1, {Entity = object, Color = color, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
+			end
 		end
 	end
 
 
-	function MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, low)
+	function MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, low, outline)
 		--local searchClass = tb.ShipClass[className]
+		if low then 
+			table.insert(self.LowPriorityClasses, 1, {Class = shipClass, Color = colorObj, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
+		else
+			table.insert(self.MonitoredClasses, 1, {Class = shipClass, Color = colorObj, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
+		end
+		self:UpdateMonitoredClasses()
+	end
+
+	function MiniMap:UpdateMonitoredClasses()
+		for _, classInfo in ipairs(MiniMap.MonitoredClasses) do
+			self:addShipsOfClass(classInfo, false)
+		end
+
+		for _, classInfo in ipairs(MiniMap.LowPriorityClasses) do
+			self:addShipsOfClass(classInfo, true)	
+		end
+	end
+
+	function MiniMap:addShipsOfClass(classInfo, low)
 		local shipIter = mn.getShipList()
 		for ship in shipIter do
-		  if ship.Class == shipClass then
-		  	MiniMap:MonitorObject(ship, scale, shape, colorObj, width, length, low)
+		  if ship.Class == classInfo.Class then
+		  	MiniMap:MonitorObject(ship, classInfo.Scale, classInfo.Shape, classInfo.Color, classInfo.Width, classInfo.Length, low, classInfo.Outline)
 		  end
 		end
 	end
@@ -365,13 +392,56 @@ $On Game Init: [
 
 	-- end
 
-	function MiniMap:IsObjectMonitored(object)
+	function MiniMap:IsObjectMonitored(object, ignoreLow)
+		ignoreLow = ignoreLow or false
 		for k, obj in ipairs(MiniMap.MonitoredEntities) do
 			if obj.Entity:getSignature() == object:getSignature() then
 				return true
 			end
 		end
+
+		if ignoreLow then return false end
+
+		for k, obj in ipairs(MiniMap.LowPriorityEntities) do
+			if obj.Entity:getSignature() == object:getSignature() then
+				return true
+			end
+		end
+
 		return false
+	end
+
+	function MiniMap:CleanupLists()
+		local toRemove = {}
+		for k, obj in ipairs(MiniMap.MonitoredEntities) do
+			if obj.Entity:getBreedName() == "None" then
+				table.insert(toRemove, k)
+			end
+		end
+		for _, k in ipairs(toRemove) do
+			table.remove(MiniMap.MonitoredEntities, k)
+		end
+
+		toRemove = {}
+		for k, obj in ipairs(MiniMap.LowPriorityEntities) do
+			if obj.Entity:getBreedName() == "None" then
+				table.insert(toRemove, k)
+			end
+		end
+		for _, k in ipairs(toRemove) do
+			table.remove(MiniMap.LowPriorityEntities, k)
+		end
+		MiniMap.CleanupCount = MiniMap.CleanupCount + 1
+	end
+
+	function MiniMap:StartCleanups()
+		MiniMap.CleanupActive = true
+		async.run(function()
+			while MiniMap.CleanupActive do 
+				async.await(mn.waitAsync(10))
+				self:CleanupLists()
+			end
+		end)
 	end
 ]
 
@@ -381,6 +451,14 @@ $On Gameplay Start:
 	MiniMap:Init()
 ]
 
+$On Ship Arrive:
+[
+	MiniMap:UpdateMonitoredClasses()
+	if MiniMap.AutoAddFighters then
+		MiniMap:UpdateFighterList()
+	end
+]
+
 $On Frame:
 [
 	local player = hv.Player
@@ -388,15 +466,18 @@ $On Frame:
 	if mn.getMissionTime() > 0.1 and player:isValid() then
 		MiniMap:CheckMonitoredObjects()
 		MiniMap.MonitoredEntities.Player = player
-		if MiniMap.AutoAddFighters then
-			MiniMap:UpdateFighterList()
-		end
 	end
 ]
 
 $On HUD Draw:
 [
 	if mn.getMissionTime() > 0.1 and MiniMap.Active then
+		if MiniMap.DebugMode then
+			gr.setColor(50,50,50,255)
+			gr.drawString("Main: " .. #MiniMap.MonitoredEntities, 100, 400)
+			gr.drawString("Low:  " .. #MiniMap.LowPriorityEntities )
+			gr.drawString("Cleanups: " .. MiniMap.CleanupCount)
+		end
 		MiniMap:DrawClipped()
 	end
 ]
