@@ -68,6 +68,34 @@ $On Game Init: [
 		MiniMap:MonitorShipsOfClass(shipClass, scale, shape, colorObj, width, length, true, outline)
 	end
 
+	mn.LuaSEXPs["minimap-add-wing"].Action = function (wing, scale, shape, colorR, colorG, colorB, width, length, outline)
+		local colorObj = nil
+		
+		if scale == 0 then
+			scale = 1
+		end
+		
+		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
+			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
+		end
+
+		MiniMap:MonitorShipsOfWing(wing, scale, shape, colorObj, width, length, false, outline)
+	end
+
+	mn.LuaSEXPs["minimap-add-wing-low"].Action = function (wing, scale, shape, colorR, colorG, colorB, width, length, outline)
+		local colorObj = nil
+		
+		if scale == 0 then
+			scale = 1
+		end
+		
+		if colorR ~= nil and colorG ~= nil and colorB ~= nil then
+			colorObj = {Red = colorR, Green = colorG, Blue = colorB, Alpha = 255}
+		end
+
+		MiniMap:MonitorShipsOfWing(wing, scale, shape, colorObj, width, length, true, outline)
+	end
+
 	mn.LuaSEXPs["minimap-set-center"].Action = function (X,Z)
 		MiniMap.Center = ba.createVector(X,0,Z)
 	end
@@ -125,6 +153,8 @@ $On Game Init: [
 		self.MonitoredClasses = {}
 		self.LowPriorityEntities = {}
 		self.MonitoredEntities = {}
+		self.LowPriorityWings = {}
+		self.MonitoredWings = {}
 		self.FighterList = {}
 		self.MapTexture = gr.createTexture(self.ScreenRect.w, self.ScreenRect.h)
 		self.Active = true
@@ -403,6 +433,30 @@ $On Game Init: [
 		end
 	end
 
+
+	function MiniMap:MonitorShipsOfWing(wing, scale, shape, colorObj, width, length, low, outline)
+		if low then 
+			table.insert(self.LowPriorityWings, 1, {Wing = wing, Color = colorObj, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
+		else
+			table.insert(self.MonitoredWings, 1, {Wing = wing, Color = colorObj, Scale = scale, Shape = shape, Width = width, Length = length, Outline = outline})
+		end
+		self:UpdateMonitoredWings()
+	end
+
+	function MiniMap:UpdateMonitoredWings()
+		for _, wingInfo in ipairs(MiniMap.MonitoredWings) do
+			for i = 1, #wingInfo.Wing do
+				MiniMap:MonitorObject(wingInfo.Wing[i], wingInfo.Scale, wingInfo.Shape, wingInfo.Color, wingInfo.Width, wingInfo.Length, false, wingInfo.Outline, true)
+			end
+		end
+
+		for _, wingInfo in ipairs(MiniMap.LowPriorityWings) do
+			for i = 1, #wingInfo.Wing do
+				MiniMap:MonitorObject(wingInfo.Wing[i], wingInfo.Scale, wingInfo.Shape, wingInfo.Color, wingInfo.Width, wingInfo.Length, true, wingInfo.Outline, true)
+			end
+		end
+	end
+
 	function MiniMap:GetObjectIndex(object, list)
 		for k, obj in ipairs(list) do
 			if obj.Entity:getSignature() == object:getSignature() then
@@ -458,7 +512,7 @@ $On Game Init: [
 		MiniMap.CleanupActive = true
 		async.run(function()
 			while MiniMap.CleanupActive do 
-				async.await(mn.waitAsync(10))
+				async.await(mn.waitAsync(1))
 				self:CleanupLists()
 			end
 		end)
@@ -474,6 +528,7 @@ $On Gameplay Start:
 $On Ship Arrive:
 [
 	MiniMap:UpdateMonitoredClasses()
+	MiniMap:UpdateMonitoredWings()
 	if MiniMap.AutoAddFighters then
 		MiniMap:UpdateFighterList()
 	end

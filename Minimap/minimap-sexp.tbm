@@ -76,7 +76,7 @@ $Subcategory: Minimap
 $Minimum Arguments: 3
 $Maximum Arguments: 9
 $Return Type: Nothing
-$Description: Adds all ships of a class to the minimap (Note: If a ship of the same class enters *after* this runs, it will not be considered here)
+$Description: Adds all ships of a class to the minimap
 $Parameter:
 	+Description: Class to monitor
 	+Type: Shipclass
@@ -111,7 +111,7 @@ $Subcategory: Minimap
 $Minimum Arguments: 3
 $Maximum Arguments: 9
 $Return Type: Nothing
-$Description: Adds all ships of a class to the minimap at low priority (Note: If a ship of the same class enters *after* this runs, it will not be considered here)
+$Description: Adds all ships of a class to the minimap at low priority
 $Parameter:
 	+Description: Class to monitor
 	+Type: Shipclass
@@ -139,6 +139,76 @@ $Parameter:
 $Parameter:
 	+Description: Outline
 	+Type: Boolean
+
+$Operator: minimap-add-wing
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 3
+$Maximum Arguments: 9
+$Return Type: Nothing
+$Description: Adds all ships of a wing to the minimap
+$Parameter:
+	+Description: Wing to monitor
+	+Type: Wing
+$Parameter:
+	+Description: Scale
+	+Type: Number
+$Parameter:
+	+Description: Shape (1: Arrow, 2: Circle, 3: Square)
+	+Type: Number
+$Parameter: 
+	+Description: ColorR
+	+Type: Number
+$Parameter: 
+	+Description: ColorG
+	+Type: Number
+$Parameter: 
+	+Description: ColorB
+	+Type: Number
+$Parameter: 
+	+Description: Width
+	+Type: Number
+$Parameter: 
+	+Description: Length
+	+Type: Number
+$Parameter:
+	+Description: Outline
+	+Type: Boolean
+
+$Operator: minimap-add-wing-low
+$Category: Change
+$Subcategory: Minimap
+$Minimum Arguments: 3
+$Maximum Arguments: 9
+$Return Type: Nothing
+$Description: Adds all ships of a wing to the minimap at a low priority
+$Parameter:
+	+Description: Wing to monitor
+	+Type: Wing
+$Parameter:
+	+Description: Scale
+	+Type: Number
+$Parameter:
+	+Description: Shape (1: Arrow, 2: Circle, 3: Square)
+	+Type: Number
+$Parameter: 
+	+Description: ColorR
+	+Type: Number
+$Parameter: 
+	+Description: ColorG
+	+Type: Number
+$Parameter: 
+	+Description: ColorB
+	+Type: Number
+$Parameter: 
+	+Description: Width
+	+Type: Number
+$Parameter: 
+	+Description: Length
+	+Type: Number
+$Parameter:
+	+Description: Outline
+	+Type: Boolean	
 
 $Operator: minimap-set-center
 $Category: Change
