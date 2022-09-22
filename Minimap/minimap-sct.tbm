@@ -156,7 +156,6 @@ $On Game Init: [
 		self.LowPriorityWings = {}
 		self.MonitoredWings = {}
 		self.FighterList = {}
-		self.MapTexture = gr.createTexture(self.ScreenRect.w, self.ScreenRect.h)
 		self.Active = true
 
 		--Settings (You may want to change those in FRED)
@@ -511,8 +510,8 @@ $On Game Init: [
 	function MiniMap:StartCleanups()
 		MiniMap.CleanupActive = true
 		async.run(function()
-			while MiniMap.CleanupActive do 
-				async.await(mn.waitAsync(1))
+			while MiniMap.CleanupActive and mn:isInMission() do 
+				async.await(mn.waitAsync(3))
 				self:CleanupLists()
 			end
 		end)
